@@ -16,17 +16,13 @@ var io = socketIO(server);
 //Setting listener for the socket-> it displays message given when user connected
 io.on('connection', (socket) => {
   console.log('New User Connected');
-//Emitting the event i.e., newEmail event from server side, sending objects
-// socket.emit('newMessage', {
-//   from:'mike',
-//   text:'Hey. What is going on.',
-//   createdAt:123
-// });
+  //Emitting message which will display from server for the user who connected to the server
 socket.emit('newMessage', {
   from:'Admin',
   text:'Welcome to the chat app',
   createdAt:moment().valueOf()
 });
+//using broadcast the message passed to all the users who connected to the serer except to the pserson who emits this event
 socket.broadcast.emit('newMessage', {
   from:'Admin',
   text:'new User joined',
@@ -43,12 +39,6 @@ socket.on('createMessage', (Message, callback) => {
     createdAt:moment().valueOf()
   });
   callback();
-  //By using broadcast the message sent to everyone who were connected but not sent to the person who is sending the message(here emitting createMessage event).
-  // socket.broadcast.emit('newMessage', {
-  //   from:Message.from,
-  //   text:Message.text,
-  //   createdAt:new Date().getTime()
-  // });
 });
 //It displays following message if user disconnected
   socket.on('disconnect', ()=>{
@@ -56,7 +46,7 @@ socket.on('createMessage', (Message, callback) => {
   });
 });
 
-
+//Setting the server to the port
   server.listen(port, ()=>{
     console.log(`Server running at${port}`);
 });
