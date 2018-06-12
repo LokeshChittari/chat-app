@@ -4,7 +4,7 @@ const socketIO = require('socket.io');
 const http = require('http');
 const port = process.env.PORT || 3200;
 const publicPath = path.join(__dirname,'/../public');
-
+const moment = require('moment');
 
 var app = express();
 app.use(express.static(publicPath));
@@ -24,12 +24,13 @@ io.on('connection', (socket) => {
 // });
 socket.emit('newMessage', {
   from:'Admin',
-  text:'Welcome to the chat app'
+  text:'Welcome to the chat app',
+  createdAt:moment().valueOf()
 });
 socket.broadcast.emit('newMessage', {
   from:'Admin',
   text:'new User joined',
-  createdAt:new Date().getTime()
+  createdAt:moment().valueOf()
 });
 
 //Adding Listener event i.e.,Creating email on server side following message prints on server side when emitted this event
@@ -39,7 +40,7 @@ socket.on('createMessage', (Message, callback) => {
   io.emit('newMessage', {
     from: Message.from,
     text: Message.text,
-    createdAt:new Date().getTime()
+    createdAt:moment().valueOf()
   });
   callback();
   //By using broadcast the message sent to everyone who were connected but not sent to the person who is sending the message(here emitting createMessage event).
