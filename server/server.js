@@ -17,14 +17,20 @@ var io = socketIO(server);
 io.on('connection', (socket) => {
   console.log('New User Connected');
 //Emitting the event i.e., newEmail event from server side, sending objects
-socket.emit('newEmail', {
-  from:'mike@example.com',
-  text:'Hey. What is going on.',
-  createdAt:123
-});
+// socket.emit('newMessage', {
+//   from:'mike',
+//   text:'Hey. What is going on.',
+//   createdAt:123
+// });
 //Adding Listener event i.e.,Creating email on server side following message prints on server side when emitted this event
-socket.on('createEmail', (newEmail) => {
-  console.log('createEmail', newEmail);
+socket.on('createMessage', (Message) => {
+  console.log('createMessage', Message);
+  //Too display the message for every one who connected to the server to same address
+  io.emit('newMessage', {
+    from: Message.from,
+    text: Message.text,
+    createdAt:new Date().getTime()
+  });
 });
 //It displays following message if user disconnected
   socket.on('disconnect', ()=>{
@@ -32,9 +38,7 @@ socket.on('createEmail', (newEmail) => {
   });
 });
 
-app.get('/', (req, res)=>{
-  res.render('index.hbs');
-});
+
   server.listen(port, ()=>{
     console.log(`Server running at${port}`);
 });
