@@ -22,15 +22,30 @@ io.on('connection', (socket) => {
 //   text:'Hey. What is going on.',
 //   createdAt:123
 // });
+socket.emit('newMessage', {
+  from:'admin',
+  text:'Welcome to the chat app'
+});
+socket.broadcast.emit('newMessage', {
+  from:'Admin',
+  text:'new User joined',
+  createdAt:new Date().getTime()
+});
 //Adding Listener event i.e.,Creating email on server side following message prints on server side when emitted this event
 socket.on('createMessage', (Message) => {
   console.log('createMessage', Message);
-  //Too display the message for every one who connected to the server to same address
+  // display the message in cleint side and server side as it is return in CreateMessage event which has to emit this event from cleint side.
   io.emit('newMessage', {
     from: Message.from,
     text: Message.text,
     createdAt:new Date().getTime()
   });
+  //By using broadcast the message sent to everyone who were connected but not sent to the person who is sending the message(here emitting createMessage event).
+  // socket.broadcast.emit('newMessage', {
+  //   from:Message.from,
+  //   text:Message.text,
+  //   createdAt:new Date().getTime()
+  // });
 });
 //It displays following message if user disconnected
   socket.on('disconnect', ()=>{
