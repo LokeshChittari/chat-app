@@ -23,7 +23,7 @@ io.on('connection', (socket) => {
 //   createdAt:123
 // });
 socket.emit('newMessage', {
-  from:'admin',
+  from:'Admin',
   text:'Welcome to the chat app'
 });
 socket.broadcast.emit('newMessage', {
@@ -31,8 +31,9 @@ socket.broadcast.emit('newMessage', {
   text:'new User joined',
   createdAt:new Date().getTime()
 });
+
 //Adding Listener event i.e.,Creating email on server side following message prints on server side when emitted this event
-socket.on('createMessage', (Message) => {
+socket.on('createMessage', (Message, callback) => {
   console.log('createMessage', Message);
   // display the message in cleint side and server side as it is return in CreateMessage event which has to emit this event from cleint side.
   io.emit('newMessage', {
@@ -40,6 +41,7 @@ socket.on('createMessage', (Message) => {
     text: Message.text,
     createdAt:new Date().getTime()
   });
+  callback();
   //By using broadcast the message sent to everyone who were connected but not sent to the person who is sending the message(here emitting createMessage event).
   // socket.broadcast.emit('newMessage', {
   //   from:Message.from,
