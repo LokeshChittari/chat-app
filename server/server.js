@@ -3,8 +3,11 @@ const express = require('express');
 const socketIO = require('socket.io');
 const http = require('http');
 const port = process.env.PORT || 3200;
+const {generateMessage} = require('./utils/message');
 const publicPath = path.join(__dirname,'/../public');
 const moment = require('moment');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 
 var app = express();
 app.use(express.static(publicPath));
@@ -13,36 +16,44 @@ app.use(express.static(publicPath));
 var server = http.createServer(app);
 //creating socket to server
 var io = socketIO(server);
+var users = new Users();
 //Setting listener for the socket-> it displays message given when user connected
 io.on('connection', (socket) => {
   console.log('New User Connected');
-  //Emitting message which will display from server for the user who connected to the server
-socket.emit('newMessage', {
-  from:'Admin',
-  text:'Welcome to the chat app',
-  createdAt:moment().valueOf()
-});
+
+socket.on('join', (params, callback) => {
+if(!isRealString(params.name) || !isRealString(params.room)) {
+  return callback('Name and room name are required!!!');
+}
+
+socket.join(params.room);
+users.removeUser(socket.id);
+users.addUser(socket.id, params.name, params.room);
+
+io.to(params.room).emit('updateUserList', users.getUserList(params.room));
+
+//Emitting message which will display from server for the user who connected to the server
+socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 //using broadcast the message passed to all the users who connected to the serer except to the pserson who emits this event
-socket.broadcast.emit('newMessage', {
-  from:'Admin',
-  text:'new User joined',
-  createdAt:moment().valueOf()
+socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
+callback();
 });
 
 //Adding Listener event i.e.,Creating email on server side following message prints on server side when emitted this event
 socket.on('createMessage', (Message, callback) => {
   console.log('createMessage', Message);
   // display the message in cleint side and server side as it is return in CreateMessage event which has to emit this event from cleint side.
-  io.emit('newMessage', {
-    from: Message.from,
-    text: Message.text,
-    createdAt:moment().valueOf()
-  });
+  io.emit('newMessage', generateMessage(Message.from, Message.text));
   callback();
 });
 //It displays following message if user disconnected
   socket.on('disconnect', ()=>{
-    console.log('User disconnected');
+    var user = users.removeUser(socket.id);
+
+    if(user){
+      io.to(user.room).emit('updateUserList', users.getUserList(user.room));
+      io.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left`));
+    }
   });
 });
 
