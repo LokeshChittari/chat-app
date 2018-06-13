@@ -52,6 +52,7 @@ socket.on('createMessage', (Message, callback) => {
 });
 
 socket.on('createLocationMessage', (coords) => {
+  
   var user = users.getUser(socket.id);
 
   if(user) {
