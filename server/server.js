@@ -3,7 +3,7 @@ const express = require('express');
 const socketIO = require('socket.io');
 const http = require('http');
 const port = process.env.PORT || 3200;
-const {generateMessage} = require('./utils/message');
+const {generateMessage, generateLocationMessage} = require('./utils/message');
 const publicPath = path.join(__dirname,'/../public');
 const moment = require('moment');
 const {isRealString} = require('./utils/validation');
@@ -50,6 +50,16 @@ socket.on('createMessage', (Message, callback) => {
 
   callback();
 });
+
+socket.on('createLocationMessage', (coords) => {
+  var user = users.getUser(socket.id);
+
+  if(user) {
+      io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude));
+  }
+
+});
+
 //It displays following message if user disconnected
   socket.on('disconnect', ()=>{
     var user = users.removeUser(socket.id);

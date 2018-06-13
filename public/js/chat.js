@@ -61,14 +61,46 @@ jQuery('#messages').append(html);
 scrollToBottom();
 });
 
+socket.on('newLocationMessage', function(messsage) {
+  var formattedTime = moment(message.createdAt).format('h:mm a');
+  var template = jQuery('#location-message-template').html();
+  var html = Mustache.render(template, {
+    from:message.from,
+    url:message.url,
+    createdAt: formattedTime
+  });
+jQuery('#messages').append(html);
+scrollToBottom();
+});
 //The written logic performs action when form is submitted
 jQuery('#message-form').on('submit', function(e) {
   e.preventDefault();
+var msgTextBox = jQuery('[name=message]');
+
   socket.emit('createMessage', {
-    from:'User',
     text:msgTextBox.val()
   }, function () {
     msgTextBox.val('');
 
+  });
+});
+
+var locationButton = jQuery('#send-location');
+locationButton.on('click', function () {
+  if(!navigator.geolocation) {
+    return alert('Geolocation not supported by browser.');
+  }
+
+  locationButton.attr('disabled', 'disabled').text('Sending location...');
+
+  navigator.geolocation.getCurrentPosition(function (position) {
+    locationButton.removeAttr('disabled').text('Send location');
+    socket.emit('createLocationMessage', {
+      latitude: position.coords.latitude,
+      longitude :position.coords.longitude
+    });
+  }, function() {
+    locationButton.removeAttr('disabled').text('Send location');
+    alert('unable to fetch location');
   });
 });
