@@ -41,9 +41,13 @@ callback();
 
 //Adding Listener event i.e.,Creating email on server side following message prints on server side when emitted this event
 socket.on('createMessage', (Message, callback) => {
-  console.log('createMessage', Message);
+  var user = users.getUser(socket.id);
+
+  if(user && isRealString(Message.text)) {
+    io.to(user.room).emit('newMessage', generateMessage(user.name, Message.text));
+  }
   // display the message in cleint side and server side as it is return in CreateMessage event which has to emit this event from cleint side.
-  io.emit('newMessage', generateMessage(Message.from, Message.text));
+
   callback();
 });
 //It displays following message if user disconnected
